@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:5
+    # restart: always
+    ports:
+      - "6379:6379"
+
+  game_server:
+    build: backend
+    command: ./backend/run_server.sh
+    volumes:
+      - .:/code
+    ports:
+      - "5000:5000"
+    environment:
+      - REDIS_HOST=172.17.0.1
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+    ipc: host
+
+  game_frontend:
+    build: frontend
+    container_name: game_frontend
+    ports:
+      - '3000:3000'
+    stdin_open: true
+    tty: true
+    depends_on:
+      - game_server
+    links:
+      - game_server
